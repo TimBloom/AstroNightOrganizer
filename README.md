@@ -39,46 +39,46 @@ AstroNightOrganizer does this automatically by:
 
 ## Quick Start
 
-### Windows
+### 1. Download
 
-Double-click **`AstroNightOrganizer.bat`** in the project folder — or run it from any terminal. It handles everything automatically.
+Click **Code → Download ZIP** on this page and extract it, or clone with git:
 
-> **Requires `uv`** (Python environment manager). Install it once with:
-> ```powershell
-> winget install astral-sh.uv
-> ```
+```bash
+git clone https://github.com/TimBloom/AstroNightOrganizer.git
+cd AstroNightOrganizer
+```
 
-### macOS and Linux
+### 2. Install `uv`
 
-Make the launcher executable once, then double-click it or run it from a terminal:
+AstroNightOrganizer uses [`uv`](https://docs.astral.sh/uv/) to manage Python and dependencies automatically. Install it once:
+
+| Platform | Command |
+|---|---|
+| Windows | `winget install astral-sh.uv` |
+| macOS / Linux | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+
+> **Requires Python 3.13+.** `uv` will download and install the right Python version for you if it isn't already present.
+
+### 3. Run
+
+**Windows** — double-click **`AstroNightOrganizer.bat`**, or from a terminal:
+
+```powershell
+.\AstroNightOrganizer.bat
+```
+
+**macOS / Linux** — make the launcher executable once, then run it:
 
 ```bash
 chmod +x AstroNightOrganizer.sh
 ./AstroNightOrganizer.sh
 ```
 
-> **Requires `uv`** (Python environment manager). Install it once with:
-> ```bash
-> curl -LsSf https://astral.sh/uv/install.sh | sh
-> ```
+All Python dependencies are installed automatically on the first run. The app opens in your default browser at `http://127.0.0.1:8765`.
 
 > **Linux users:** the GUI folder picker requires `tkinter`, which is not always bundled with Python. Install it with `sudo apt install python3-tk` (Debian/Ubuntu) or the equivalent for your distro.
 
-### Any platform (manual)
-
-```bash
-uv run python run.py
-```
-
-Or, if `python` is in your PATH:
-
-```bash
-python run.py
-```
-
-All dependencies are installed automatically on first run. No manual `pip install` needed.
-
-> **Requires Python 3.13+.** If you don't have it, download it from [python.org/downloads](https://www.python.org/downloads/).
+> **Platform note:** AstroNightOrganizer has been tested on Windows 11. The macOS and Linux launchers are included and should work, but have not yet been tested on those platforms. Reports of success or issues are welcome.
 
 ---
 
@@ -434,6 +434,38 @@ The master. For darks and biases, AstroNightOrganizer always prefers an XISF mas
 
 **My calibration library is in a separate folder — can AstroNightOrganizer find it?**  
 Yes. In the GUI, expand the **Extra calibration folders** section and enable each type (Darks, Biases, Flats) independently, pointing each to its own folder. Those frames are merged with the source scan before grouping.
+
+---
+
+## Uninstalling
+
+AstroNightOrganizer stores files in two places:
+
+**1. The project folder** — contains the source code and the Python virtual environment created by `uv`. Delete the entire folder to remove the app:
+
+```powershell
+# Windows
+Remove-Item -Recurse -Force "C:\path\to\AstroNightOrganizer"
+```
+
+```bash
+# macOS / Linux
+rm -rf /path/to/AstroNightOrganizer
+```
+
+**2. User data folder** — the scan cache and OpenNGC catalog are stored outside the project folder and must be removed separately if you want a clean uninstall:
+
+```powershell
+# Windows
+Remove-Item -Recurse -Force "$env:USERPROFILE\.astronight"
+```
+
+```bash
+# macOS / Linux
+rm -rf ~/.astronight
+```
+
+That's everything — AstroNightOrganizer does not write to the registry, system directories, or anywhere else.
 
 ---
 
