@@ -1,0 +1,22 @@
+[project]
+name = "astronightorganizer"
+version = "0.3.0"
+description = "Organise astrophotography FITS files into WBPP-compatible folder structure for PixInsight"
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.13"
+dependencies = [
+    "astropy>=7.2.0",
+    "click>=8.3.1",
+    "nicegui>=3.9.0",
+    "rich>=14.3.3",
+    "xisf>=0.9.6",
+]
+
+[project.scripts]
+astronight = "astronight.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.2",
+]

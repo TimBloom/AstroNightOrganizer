@@ -1,0 +1,15 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+
+# NiceGUI local state (created when the app runs)
+.nicegui/
+
+# AstroNightOrganizer runtime data (stored in user home, not repo)
+# ~/.astronight/  ← not in repo, listed here for documentation only
