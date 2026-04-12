@@ -39,7 +39,7 @@ AstroNightOrganizer does this automatically by:
 
 ## Quick Start
 
-### Windows (recommended)
+### Windows
 
 Double-click **`AstroNightOrganizer.bat`** in the project folder — or run it from any terminal. It handles everything automatically.
 
@@ -48,23 +48,37 @@ Double-click **`AstroNightOrganizer.bat`** in the project folder — or run it f
 > winget install astral-sh.uv
 > ```
 
-### Any platform
+### macOS and Linux
 
-```powershell
+Make the launcher executable once, then double-click it or run it from a terminal:
+
+```bash
+chmod +x AstroNightOrganizer.sh
+./AstroNightOrganizer.sh
+```
+
+> **Requires `uv`** (Python environment manager). Install it once with:
+> ```bash
+> curl -LsSf https://astral.sh/uv/install.sh | sh
+> ```
+
+> **Linux users:** the GUI folder picker requires `tkinter`, which is not always bundled with Python. Install it with `sudo apt install python3-tk` (Debian/Ubuntu) or the equivalent for your distro.
+
+### Any platform (manual)
+
+```bash
 uv run python run.py
 ```
 
 Or, if `python` is in your PATH:
 
-```powershell
+```bash
 python run.py
 ```
 
 All dependencies are installed automatically on first run. No manual `pip install` needed.
 
 > **Requires Python 3.13+.** If you don't have it, download it from [python.org/downloads](https://www.python.org/downloads/).
->
-> **Linux users:** the GUI folder picker requires `tkinter`, which is not always bundled. Install it with `sudo apt install python3-tk` (Debian/Ubuntu) or the equivalent for your distro.
 
 ---
 
@@ -394,8 +408,8 @@ Tests cover filename parsing (all generations and flat variants), FITS header ex
 **What if my target name is in the FITS header but not the filename?**  
 The header is authoritative. `OBJECT` is used when present; the filename is only parsed as a fallback if the header lacks the field.
 
-**Can I run the sort multiple times on the same destination?**  
-Yes. The night index ensures `NIGHT_N` numbers increment correctly across runs. Duplicate files are detected by MD5 and skipped automatically.
+**Can I sort new frames into a destination folder I've already sorted into before?**  
+Yes. The night index ensures `NIGHT_N` numbers increment correctly across runs, so new nights get the next available number rather than overwriting existing ones. Duplicate files are detected by MD5 and skipped automatically, so re-sorting the same source frames is safe.
 
 **How do I know if my calibration frames are too old?**  
 A warning (⚠) is shown in the GUI groups table and written to the log whenever the best-matching dark or bias set is more than 183 days from the light frame night.

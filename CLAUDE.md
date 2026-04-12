@@ -26,6 +26,7 @@ Destination/
 ```
 AstroNightOrganizer/
 ├── AstroNightOrganizer.bat   # Windows double-click launcher (uses uv)
+├── AstroNightOrganizer.sh    # macOS/Linux double-click launcher (uses uv); needs chmod +x once
 ├── run.py                    # Cross-platform launcher — auto-installs deps, opens GUI
 ├── pyproject.toml            # Requires Python 3.13+
 ├── astronight/
@@ -273,6 +274,8 @@ in these files; `CCD-TEMP` holds the actual sensor temperature.
   downloads/refreshes `~/.astronight/openngc.csv`.
 - **Windows launcher**: added `AstroNightOrganizer.bat` — double-click to start; uses
   `uv run python run.py` to bypass Windows `python` → Microsoft Store stub issue.
+- **macOS/Linux launcher**: added `AstroNightOrganizer.sh` — equivalent shell script;
+  requires `chmod +x` once before first use.
 
 ## Potential Next Steps
 

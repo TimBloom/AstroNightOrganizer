@@ -7,6 +7,16 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [0.3.1] — 2026-04-12
+
+### Added
+- **`AstroNightOrganizer.sh`** macOS/Linux launcher — equivalent to the Windows `.bat`
+  file. Checks for `uv`, then runs `uv run python run.py` from the project directory.
+  Make it executable once with `chmod +x AstroNightOrganizer.sh`, then double-click or
+  run from a terminal.
+
+---
+
 ## [0.3.0] — 2026-04-12
 
 ### Added
