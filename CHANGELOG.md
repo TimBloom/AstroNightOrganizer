@@ -33,7 +33,7 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ## [0.2.0] — 2026-04-12
 
 ### Added
-- **Object name resolution** via [OpenNGC](https://github.com/mattiaverga/OpenNGC) (MIT licence).
+- **Object name resolution** via [OpenNGC](https://github.com/mattiaverga/OpenNGC) (CC-BY-SA-4.0).
   Target names like `M 101`, `m101`, `NGC 5457` all resolve to `Pinwheel Galaxy` before
   grouping, so frames filed under different catalog designations for the same object are
   merged automatically. Original catalog IDs shown as a subtitle in the GUI groups table.

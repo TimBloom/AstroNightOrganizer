@@ -286,7 +286,7 @@ IMAGETYP values recognised in XISF headers: `Master Dark`, `dark`, `dark frame`,
 
 ### 5. Object Name Resolution
 
-Before grouping, each light frame's target name is resolved against the [OpenNGC](https://github.com/mattiaverga/OpenNGC) catalog (MIT license). The resolution priority is:
+Before grouping, each light frame's target name is resolved against the [OpenNGC](https://github.com/mattiaverga/OpenNGC) catalog (CC-BY-SA-4.0). The resolution priority is:
 
 1. **Common name** — e.g. `Pinwheel Galaxy`
 2. **Primary NGC/IC designation** — e.g. `NGC 5457`

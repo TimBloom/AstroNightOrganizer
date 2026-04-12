@@ -120,7 +120,7 @@ in these files; `CCD-TEMP` holds the actual sensor temperature.
 ### Object Name Resolution (catalog.py)
 
 - OpenNGC CSV stored at `~/.astronight/openngc.csv` (alongside scan cache)
-- `download_openngc()` fetches from `mattiaverga/OpenNGC` on GitHub (MIT licence)
+- `download_openngc()` fetches from `mattiaverga/OpenNGC` on GitHub (CC-BY-SA-4.0)
 - `load_catalog(force=False)` parses CSV into a normalised dict, cached in memory
 - `resolve_name(raw)` normalises input and returns: common name → NGC/IC display
   name → raw unchanged
@@ -266,7 +266,7 @@ in these files; `CCD-TEMP` holds the actual sensor temperature.
   only preferred when at least as recent as the best individual set — changed so
   the master always wins for darks and biases when one exists. Flats still use
   the recency-based preference since flat calibration is night-specific.
-- **Object name resolution**: added `catalog.py` using OpenNGC (MIT). Targets
+- **Object name resolution**: added `catalog.py` using OpenNGC (CC-BY-SA-4.0). Targets
   like `M 101`, `m101`, `NGC 5457` are resolved to `Pinwheel Galaxy` before
   grouping, so frames with different catalog designations for the same object
   are merged into one group. Original names stored on `LightGroup.original_targets`
