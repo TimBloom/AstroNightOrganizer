@@ -516,7 +516,7 @@ def create_gui():
                                 parent_cb = ui.checkbox(value=False).classes('w-6 shrink-0')
                                 all_parent_cbs.append(parent_cb)
 
-                                        suffix = f'  ({len(indexed_groups)} nights)' if multi else ''
+                                suffix = f'  ({len(indexed_groups)} nights)' if multi else ''
                                 # Collect all original names across all nights for this target
                                 all_originals = sorted({
                                     n
