@@ -741,6 +741,50 @@ def create_gui():
                     ui.notify(f'Source folder not found:\n{src}', type='negative')
                     return
 
+                # Warn if the object name catalog hasn't been downloaded yet
+                from .catalog import OPENNGC_PATH, download_openngc, load_catalog
+                if not OPENNGC_PATH.exists():
+                    action: asyncio.Future[str] = asyncio.get_event_loop().create_future()
+
+                    with ui.dialog().props('persistent') as no_catalog_dialog, ui.card().classes('max-w-md'):
+                        ui.label('No object catalog').classes('text-lg font-semibold')
+                        ui.label(
+                            'The object name catalog has not been downloaded yet. '
+                            'Without it, targets like M 42 and NGC 5457 will not resolve '
+                            'to common names (e.g. Orion Nebula, Pinwheel Galaxy), and '
+                            'frames with different designations for the same object may '
+                            'not be merged into one group.'
+                        ).classes('text-sm text-gray-600')
+                        with ui.row().classes('gap-2 justify-end w-full'):
+                            ui.button('Cancel', on_click=lambda: (
+                                action.set_result('cancel'),
+                                no_catalog_dialog.close(),
+                            )).props('flat')
+                            ui.button('Scan anyway', on_click=lambda: (
+                                action.set_result('scan'),
+                                no_catalog_dialog.close(),
+                            )).props('flat')
+                            ui.button('Download catalog', icon='download', on_click=lambda: (
+                                action.set_result('download'),
+                                no_catalog_dialog.close(),
+                            )).props('color=primary')
+
+                    no_catalog_dialog.open()
+                    choice = await action
+                    no_catalog_dialog.delete()
+
+                    if choice == 'cancel':
+                        return
+                    if choice == 'download':
+                        scan_status.set_text('Downloading catalog…')
+                        try:
+                            await asyncio.get_event_loop().run_in_executor(None, download_openngc)
+                            load_catalog(force=True)
+                            ui.notify('Catalog downloaded.', type='positive')
+                        except Exception as exc:
+                            ui.notify(f'Catalog download failed: {exc}', type='negative')
+                            return
+
                 state.source = src
                 state.destination = Path(dest_text)
 

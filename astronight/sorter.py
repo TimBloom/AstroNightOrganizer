@@ -16,7 +16,7 @@ from .calibration import (
     build_flat_index,
     resolve_calibration,
 )
-from .catalog import resolve_name
+from .catalog import _normalise, resolve_name
 from .file_ops import (
     copy_frame,
     init_night_folders,
@@ -110,10 +110,17 @@ def build_groups(all_frames: list[FitsFrame]) -> list[LightGroup]:
             bias_index=bias_index,
             flat_index=flat_index,
         )
-        # Original names that differ from the resolved canonical name
-        originals = sorted(
-            n for n in raw_targets[key] if n != key.target
-        )
+        # Original names that differ from the resolved canonical name.
+        # Deduplicate by normalised form so "M 101" and "M101" don't both appear.
+        seen_norm: set[str] = set()
+        originals = []
+        for n in sorted(raw_targets[key]):
+            if n == key.target:
+                continue
+            norm = _normalise(n)
+            if norm not in seen_norm:
+                seen_norm.add(norm)
+                originals.append(n)
         groups.append(LightGroup(key=key, lights=light_frames, calib=calib,
                                  original_targets=originals))
 
