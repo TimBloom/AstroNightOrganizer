@@ -39,12 +39,34 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
+from contextlib import contextmanager
+import subprocess
+
 from nicegui import app, ui
 from nicegui.events import ValueChangeEventArguments
 
 from .cache import ScanCache
 from .file_ops import scan_fits
 from .sorter import LightGroup, build_groups, copy_groups
+
+
+@contextmanager
+def _caffeinate():
+    """Prevent macOS idle sleep for the duration of the block.
+
+    Spawns ``caffeinate -i`` on macOS, which holds a power assertion that
+    blocks idle sleep until the process exits.  On other platforms this is
+    a no-op so the same call site works everywhere.
+    """
+    if sys.platform != 'darwin':
+        yield
+        return
+    proc = subprocess.Popen(['caffeinate', '-i'])
+    try:
+        yield
+    finally:
+        proc.terminate()
+        proc.wait()
 
 
 # ---------------------------------------------------------------------------
@@ -757,6 +779,7 @@ def create_gui():
                 state.selected.clear()
 
                 _last_ui_update = [0.0]
+                _ui_alive = [True]
 
                 def progress_cb(done: int, total: int, name: str):
                     """Update the scan progress bar and status label.
@@ -766,14 +789,24 @@ def create_gui():
                     21,000+ WebSocket messages and overwhelm the browser.
                     The final update (done == total) always fires regardless
                     of the throttle so the bar reaches 100%.
+
+                    If the browser disconnects mid-scan (e.g. Safari refresh),
+                    NiceGUI deletes the client and UI updates raise RuntimeError.
+                    We catch that once, disable further UI updates, and let the
+                    scan continue to completion so the cache is fully written.
                     """
+                    if not _ui_alive[0]:
+                        return
                     now = time.monotonic()
                     if done < total and now - _last_ui_update[0] < 0.25:
                         return
                     _last_ui_update[0] = now
                     ratio = done / total if total else 0
-                    scan_progress.set_value(ratio)
-                    scan_status.set_text(f'Scanning… {int(ratio * 100)}%')
+                    try:
+                        scan_progress.set_value(ratio)
+                        scan_status.set_text(f'Scanning… {int(ratio * 100)}%')
+                    except RuntimeError:
+                        _ui_alive[0] = False
 
                 def _scan_with_cache():
                     """Run scan_fits inside the executor thread.
@@ -784,28 +817,29 @@ def create_gui():
                     with ScanCache() as cache:
                         return scan_fits(src, progress_callback=progress_cb, cache=cache)
 
-                frames, errors = await asyncio.get_event_loop().run_in_executor(
-                    None, _scan_with_cache
-                )
+                with _caffeinate():
+                    frames, errors = await asyncio.get_event_loop().run_in_executor(
+                        None, _scan_with_cache
+                    )
 
-                # Scan extra calibration folders and merge, filtering to their type
-                for ft, extra_path in state.extra_calib.items():
-                    if extra_path is None:
-                        continue
-                    scan_status.set_text(f'Scanning extra {ft}s folder…')
-                    def _scan_extra(p=extra_path):
-                        with ScanCache() as cache:
-                            return scan_fits(p, cache=cache)
-                    extra_frames, extra_errors = await asyncio.get_event_loop().run_in_executor(
-                        None, _scan_extra
-                    )
-                    # Only keep frames of the expected type from this folder
-                    kept = [f for f in extra_frames if f.frame_type == ft]
-                    frames = frames + kept
-                    errors = errors + extra_errors
-                    append_log(
-                        f'Extra {ft}s folder: found {len(kept)} {ft.lower()} frames in {extra_path}'
-                    )
+                    # Scan extra calibration folders and merge, filtering to their type
+                    for ft, extra_path in state.extra_calib.items():
+                        if extra_path is None:
+                            continue
+                        scan_status.set_text(f'Scanning extra {ft}s folder…')
+                        def _scan_extra(p=extra_path):
+                            with ScanCache() as cache:
+                                return scan_fits(p, cache=cache)
+                        extra_frames, extra_errors = await asyncio.get_event_loop().run_in_executor(
+                            None, _scan_extra
+                        )
+                        # Only keep frames of the expected type from this folder
+                        kept = [f for f in extra_frames if f.frame_type == ft]
+                        frames = frames + kept
+                        errors = errors + extra_errors
+                        append_log(
+                            f'Extra {ft}s folder: found {len(kept)} {ft.lower()} frames in {extra_path}'
+                        )
 
                 state.frames = frames
 
@@ -844,7 +878,18 @@ def create_gui():
                 refresh_groups()
                 ui.notify(f'Found {len(state.groups)} light groups.', type='positive')
 
+                # Remember that this source was successfully scanned so we can
+                # auto-rescan on reconnect (fast from cache)
+                app.storage.general['last_scan_source'] = src_text
+
             scan_btn.on('click', do_scan)
+
+            # Auto-rescan on page reconnect if the previous session completed a
+            # scan for the same source folder.  The cache makes this fast.
+            _last_scan_src = app.storage.general.get('last_scan_source', '')
+            if _last_scan_src and _last_scan_src == source_input.value.strip():
+                ui.notify('Restoring previous scan…', type='info')
+                ui.timer(0.5, do_scan, once=True)
 
             # ==============================================================
             # Sort / Dry run
@@ -897,16 +942,17 @@ def create_gui():
                         pct = int(100 * done / total) if total else 0
                         sort_status.set_text(f'Copying… {pct}%')
 
-                    result = await asyncio.get_event_loop().run_in_executor(
-                        None,
-                        lambda: copy_groups(
-                            groups=chosen,
-                            dest_root=dest,
-                            dry_run=False,
-                            progress_cb=progress_cb,
-                            log_cb=append_log,
+                    with _caffeinate():
+                        result = await asyncio.get_event_loop().run_in_executor(
+                            None,
+                            lambda: copy_groups(
+                                groups=chosen,
+                                dest_root=dest,
+                                dry_run=False,
+                                progress_cb=progress_cb,
+                                log_cb=append_log,
+                            )
                         )
-                    )
 
                     sort_progress.set_value(1)
                     summary = (
@@ -938,4 +984,5 @@ def run_gui(host: str = '127.0.0.1', port: int = 8765, reload: bool = False):
         reload=reload,
         show=True,
         storage_secret='astronight-local',
+        reconnect_timeout=30,
     )
