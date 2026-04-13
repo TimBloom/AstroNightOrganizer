@@ -207,8 +207,9 @@ in these files; `CCD-TEMP` holds the actual sensor temperature.
 ### GUI (gui.py)
 
 - NiceGUI browser app, auto-opens on `http://127.0.0.1:8765`
-- **Folder picker**: tkinter `filedialog.askdirectory()` server-side, run in
-  executor thread to avoid blocking event loop
+- **Folder picker**: tkinter `filedialog.askdirectory()` spawned in a subprocess
+  so it runs on that process's own main thread — required on macOS (tkinter must
+  be on the main thread), and works identically on Windows and Linux
 - **Scan runs in executor**: `ScanCache` created inside the thread function
 - **Checkbox events**: NiceGUI uses `e.args` not `e.value` for `update:model-value`
 - **Field persistence**: `app.storage.general` with `storage_secret='astronight-local'`

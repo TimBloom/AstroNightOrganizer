@@ -350,23 +350,21 @@ def create_gui():
             async def _browse(target_field: ui.input):
                 """Open a native OS folder picker and write the result into *target_field*.
 
-                Uses tkinter's ``filedialog.askdirectory`` run in an executor
-                thread so it doesn't block the NiceGUI event loop.  tkinter is
-                run server-side (not in the browser) which is what gives us a
-                real absolute path rather than a browser sandbox relative path.
-                ``wm_attributes('-topmost', True)`` ensures the dialog appears
-                in front of the browser window.
+                Spawns tkinter in a subprocess so it runs on that process's main
+                thread — required on macOS, and works identically on Windows and Linux.
                 """
-                import tkinter as tk
-                from tkinter import filedialog
+                import sys
+                import subprocess
 
                 def _open_dialog():
-                    root = tk.Tk()
-                    root.withdraw()
-                    root.wm_attributes('-topmost', True)
-                    folder = filedialog.askdirectory(title='Select folder')
-                    root.destroy()
-                    return folder
+                    result = subprocess.run(
+                        [sys.executable, '-c',
+                         'import tkinter as tk; from tkinter import filedialog; '
+                         'root = tk.Tk(); root.withdraw(); root.wm_attributes("-topmost", True); '
+                         'print(filedialog.askdirectory() or "")'],
+                        capture_output=True, text=True,
+                    )
+                    return result.stdout.strip()
 
                 folder = await asyncio.get_event_loop().run_in_executor(None, _open_dialog)
                 if folder:
